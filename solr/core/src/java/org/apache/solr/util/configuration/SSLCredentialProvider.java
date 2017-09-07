@@ -14,10 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
+package org.apache.solr.util.configuration;
+
 /**
- * SSL crendetial providers to support different source of credentials.
+ * Interface for different source of SSL configurations.
  */
-package org.apache.solr.util.configuration.providers;
+public interface SSLCredentialProvider {
+  enum CredentialType {
+    SSL_KEY_STORE_PASSWORD,
+    SSL_TRUST_STORE_PASSWORD,
+    SSL_CLIENT_KEY_STORE_PASSWORD,
+    SSL_CLIENT_TRUST_STORE_PASSWORD
+  }
 
+  /**
+   * @return Credential for the given credential type
+   */
+  String getCredential(CredentialType type);
 
+}
