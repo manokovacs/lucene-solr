@@ -14,8 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-personality_plugins "ant,jira,javac,unit,junit,author,test4tests,checkluceneversion,ratsources,checkforbiddenapis,checklicenses"
-#personality_plugins "ant,jira,javac,checkluceneversion,ratsources,checkforbiddenapis,checklicenses"
+personality_plugins "ant,solrutil,jira,javac,unit,junit,author,test4tests,checkluceneversion,ratsources,checkforbiddenapis,checklicenses"
+#personality_plugins "ant,solrutil,jira,javac,unit,junit"
+
+add_test_type "checkluceneversion"
+add_test_type "ratsources"
+add_test_type "checkforbiddenapis"
+add_test_type "checklicenses"
+add_test_format "solrutil"
 
 ## @description  Globals specific to this personality
 ## @audience     private
@@ -58,7 +64,8 @@ function personality_modules
 
   case ${testtype} in
     distclean)
-      extra="clean"
+      extra=""
+      moduleType="top"
       ;;
     checkluceneversion)
       moduleType="solr"
@@ -76,7 +83,11 @@ function personality_modules
       moduleType="submodules"
       ;;
     unit)
+      # We overrride the build dir, since junit test result
       extra="-Dtests.jvms=8 test"
+      moduleType="submodules"
+      ;;
+    junit)
       moduleType="submodules"
       ;;
     *)
@@ -88,19 +99,19 @@ function personality_modules
     submodules)
       for module in "${CHANGED_MODULES[@]}"; do
         if [[ "$module" =~ ^solr/core ]]; then
-          echo ${module} "-> solr/core"
+          yetus_debug ${module} "-> solr/core"
           personality_enqueue_module "solr/core" "$extra"
         fi
         if [[ "$module" =~ ^solr/solrj ]]; then
-          echo ${module} "-> solr/solrj"
+          yetus_debug ${module} "-> solr/solrj"
           personality_enqueue_module "solr/solrj" "$extra"
         fi
         if [[ "$module" =~ ^solr/contrib ]]; then
-          echo ${module} "-> solr/contrib"
+          yetus_debug ${module} "-> solr/contrib"
           personality_enqueue_module "${module}" "$extra"
         fi
         if [[ "$module" =~ ^lucene/ ]]; then
-          echo ${module} "-> ${module}"
+          yetus_debug ${module} "-> ${module}"
           personality_enqueue_module "${module}" "$extra"
         fi
       done
@@ -144,11 +155,23 @@ function personality_modules
 #  done
 }
 
-add_test_type "checkluceneversion"
-add_test_type "ratsources"
-add_test_type "checkforbiddenapis"
-add_test_type "checklicenses"
-
+## @description  hook to reroute junit folder to search test results based on the module
+## @audience     private
+## @stability    evolving
+## @param  module
+## @param  buildlogfile
+function solrutil_process_tests
+{
+  # shellcheck disable=SC2034
+  declare module=$1
+  declare buildlogfile=$2
+  if [[ "$module" =~ ^solr/contrib ]]; then
+    JUNIT_TEST_OUTPUT_DIR="../../build"
+  else
+    JUNIT_TEST_OUTPUT_DIR="../build"
+  fi
+  yetus_debug "Rerouting build dir for junit to ${JUNIT_TEST_OUTPUT_DIR}"
+}
 
 
 function checkluceneversion_precompile
@@ -229,44 +252,4 @@ function solr_ant_command
   fi
   modules_messages ${repostatus} "${title}" true
   return 0
-}
-
-
-function ___personality_file_tests
-{
-  local filename=$1
-
-  yetus_debug "Using personality_file_tests (solr)"
-
-  if [[ ${filename} =~ \.sh
-       || ${filename} =~ \.cmd
-       ]]; then
-    yetus_debug "tests/shell: ${filename}"
-  elif [[ ${filename} =~ \.c$
-       || ${filename} =~ \.cc$
-       || ${filename} =~ \.h$
-       || ${filename} =~ \.hh$
-       || ${filename} =~ \.proto$
-       || ${filename} =~ src/test
-       || ${filename} =~ \.cmake$
-       || ${filename} =~ CMakeLists.txt
-       ]]; then
-    yetus_debug "tests/units: ${filename}"
-    add_test javac
-    add_test unit
-  elif [[ ${filename} =~ build.xml
-       || ${filename} =~ ivy.xml
-       || ${filename} =~ \.java$
-       ]]; then
-      yetus_debug "tests/javadoc+units: ${filename}"
-      add_test javac
-      add_test unit
-      add_test author
-      add_test test4tests
-      add_test "check-example-lucene-match-version"
-      add_test "rat-sources"
-      add_test "check-forbidden-apis"
-      add_test "check-licenses"
-
-  fi
 }

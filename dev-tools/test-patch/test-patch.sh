@@ -14,8 +14,6 @@ YETUS_CMD=precommit/test-patch.sh
 
 SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
-#	--plugins="ant,jira,javac,unit,junit,author,test4tests,checkluceneversion,ratsources,checkforbiddenapis,checklicenses" \
-#	--plugins="ant,jira,javac,checklicenses" \
 $YETUS_BIN/$YETUS_CMD \
   --personality=$SCRIPT_DIR/solr-yetus-personality.sh \
 	--basedir=$PROJECT_DIR \
