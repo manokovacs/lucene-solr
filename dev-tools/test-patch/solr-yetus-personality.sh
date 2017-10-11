@@ -31,9 +31,9 @@ function personality_globals
   #shellcheck disable=SC2034
   PATCH_BRANCH_DEFAULT=master
   #shellcheck disable=SC2034
-  JIRA_ISSUE_RE='^SOLR-[0-9]+$'
+  JIRA_ISSUE_RE='^(SOLR|LUCENE)-[0-9]+$'
   #shellcheck disable=SC2034
-  JIRA_STATUS_RE='Open'
+  JIRA_STATUS_RE='Patch Available'
   #shellcheck disable=SC2034
   GITHUB_REPO="apache/lucene-solr"
   #shellcheck disable=SC2034

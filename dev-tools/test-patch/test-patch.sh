@@ -27,5 +27,5 @@ $YETUS_BIN/$YETUS_CMD \
 	--build-tool=ant \
 	--resetrepo \
 	--run-tests \
- 	----robot \
+ 	--robot \
 	$1
