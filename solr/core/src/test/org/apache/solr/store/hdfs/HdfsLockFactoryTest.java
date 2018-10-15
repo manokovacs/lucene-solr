@@ -45,7 +45,6 @@ import org.apache.lucene.util.TestRuleRestoreSystemProperties;
 import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.cloud.hdfs.HdfsTestUtil;
 import org.apache.solr.util.BadHdfsThreadsFilter;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -60,7 +59,6 @@ import static java.util.Arrays.asList;
 import static org.apache.solr.store.hdfs.HdfsLockFactory.DEFAULT_LOCK_HOLD_TIMEOUT;
 import static org.apache.solr.store.hdfs.HdfsLockFactory.DEFAULT_UPDATE_DELAY;
 import static org.apache.solr.store.hdfs.HdfsLockFactory.LOCK_HOLD_TIMEOUT_KEY;
-import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
@@ -242,7 +240,7 @@ public class HdfsLockFactoryTest extends SolrTestCaseJ4 {
     disconnectFromHdfs(lock);
     lock2 = obtainLock();
 
-    assertThat(waitTime, Matchers.greaterThanOrEqualTo(5000L));
+    assertTrue("waitTime should be greater than or equal to 5000", waitTime >= 5000L);
   }
 
   @Test
@@ -256,7 +254,7 @@ public class HdfsLockFactoryTest extends SolrTestCaseJ4 {
       executeScheduledTasks();
     });
     failObtainingLock();
-    assertThat(waitTime, equalTo(DEFAULT_UPDATE_DELAY * 3));
+    assertEquals(DEFAULT_UPDATE_DELAY * 3, waitTime);
   }
 
   @Test
@@ -305,7 +303,7 @@ public class HdfsLockFactoryTest extends SolrTestCaseJ4 {
       }
     }).run();
     countDown.await(10_000, TimeUnit.MILLISECONDS);
-    assertThat(successful.get(), equalTo(1));
+    assertEquals(1, successful.get());
   }
 
   private boolean lockLostReported() {
